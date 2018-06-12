@@ -45,7 +45,7 @@ youth <- youth %>%
   rownames_to_column()
 
 
-data <- bind_rows(anna_karenina, boyhood, childhood, cossacks, resurrection, war_and_peace, youth)
+data <- bind_rows(boyhood, resurrection)
 ```
 
 
@@ -66,14 +66,28 @@ afinn_resurrection <- resurrection %>%
 ```{r}
 afinn_data <- data %>% 
   inner_join(get_sentiments("afinn"), by = c("words" = "word")) %>% 
-  group_by(title, index = as.numeric(rowname) %/%1000) %>% 
+  group_by(title, index = as.numeric(rowname) %/%1500) %>% 
   summarise(sentiment = sum(score))
+
+get_sentiments("afinn")
 
 afinn_data_2 <- data %>% 
   inner_join(get_sentiments("bing"), by = c("words" = "word")) %>%
   count(title, index = as.numeric(rowname) %/% 1500, sentiment) %>%
   spread(sentiment, n, fill = 0) %>%
   mutate(sentiment = positive - negative)
+
+afinn_data_3 <- data %>% 
+  inner_join(get_sentiments("bing"), by = c("words" = "word")) %>%
+  count(title, index = as.numeric(rowname)%/%as.numeric(max(as.numeric(rowname)/50)), sentiment) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+data %>%  
+  group_by(title) %>% 
+  #mutate(index = max(as.numeric(rowname))/50)
+  mutate(index = as.numeric(rowname)%/%as.numeric(max(as.numeric(rowname))/50))
+  
 ```
 
 
@@ -84,7 +98,17 @@ ggplot(afinn_anna, aes(index, sentiment)) +
 ggplot(afinn_resurrection, aes(index, sentiment)) +
   geom_col(show.legend = FALSE)
 
+
+ggplot(afinn_data, aes(index, sentiment, fill = title)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~title, ncol = 3, scales = "free_x")
+
+
 ggplot(afinn_data_2, aes(index, sentiment, fill = title)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~title, ncol = 3, scales = "free_x")
+
+ggplot(afinn_data_3, aes(index, sentiment, fill = title)) +
   geom_col(show.legend = FALSE) +
   facet_wrap(~title, ncol = 3, scales = "free_x")
 ```
