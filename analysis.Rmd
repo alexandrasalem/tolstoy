@@ -7,3 +7,29 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+```{r}
+library(readr)
+library(tidytext)
+library(tidyverse)
+```
+
+```{r}
+data<- read_csv("new.csv")
+```
+```{r}
+get_sentiments("afinn")
+
+afinn <- data %>% 
+  rownames_to_column() %>% 
+  inner_join(get_sentiments("afinn"), by = c("one" = "word")) %>% 
+  group_by(index = as.numeric(rowname) %/%1000) %>% 
+  summarise(sentiment = sum(score))
+```
+
+```{r}
+ggplot(afinn, aes(index, sentiment, fill = method)) +
+  geom_col(show.legend = FALSE)
+```
+
+
