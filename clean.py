@@ -2,6 +2,7 @@ import csv
 from nltk import word_tokenize
 
 def clean(infilename, outfilename):
+	title = outfilename[:-4]
 	with open(infilename, "r") as f:
 		text = f.read()
 
@@ -13,8 +14,9 @@ def clean(infilename, outfilename):
 
 	with open(outfilename, "w") as csvfile:
 		writer = csv.writer(csvfile)
+		writer.writerow(["title", "words"])
 		for word in words:
-			writer.writerow([word])
+			writer.writerow([title, word])
 
 names = [["anna_karenina_clean.txt", "anna_karenina.csv"], ["boyhood_clean.txt", "boyhood.csv"], 
 		["childhood_clean.txt", "childhood.csv"], ["cossacks_clean.txt", "cossacks.csv"],

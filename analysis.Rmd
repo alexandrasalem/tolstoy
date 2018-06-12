@@ -15,21 +15,78 @@ library(tidyverse)
 ```
 
 ```{r}
-data<- read_csv("new.csv")
-```
-```{r}
-get_sentiments("afinn")
+anna_karenina<- read_csv("anna_karenina.csv")
+boyhood <- read_csv("boyhood.csv")
+childhood <- read_csv("childhood.csv")
+cossacks <- read_csv("cossacks.csv")
+resurrection<- read_csv("resurrection.csv")
+war_and_peace<- read_csv("war_and_peace.csv")
+youth<- read_csv("youth.csv")
 
-afinn <- data %>% 
-  rownames_to_column() %>% 
-  inner_join(get_sentiments("afinn"), by = c("one" = "word")) %>% 
+anna_karenina <- anna_karenina %>% 
+  rownames_to_column()
+
+boyhood <- boyhood %>% 
+  rownames_to_column()
+
+childhood <- childhood %>% 
+  rownames_to_column()
+
+cossacks <- cossacks %>% 
+  rownames_to_column()
+
+resurrection <- resurrection %>% 
+  rownames_to_column()
+
+war_and_peace <- war_and_peace %>% 
+  rownames_to_column()
+
+youth <- youth %>% 
+  rownames_to_column()
+
+
+data <- bind_rows(anna_karenina, boyhood, childhood, cossacks, resurrection, war_and_peace, youth)
+```
+
+
+```{r}
+afinn_anna <- anna_karenina %>% 
+  inner_join(get_sentiments("afinn"), by = c("words" = "word")) %>% 
   group_by(index = as.numeric(rowname) %/%1000) %>% 
   summarise(sentiment = sum(score))
 ```
 
 ```{r}
-ggplot(afinn, aes(index, sentiment, fill = method)) +
+afinn_resurrection <- resurrection %>% 
+  inner_join(get_sentiments("afinn"), by = c("words" = "word")) %>% 
+  group_by(index = as.numeric(rowname) %/%100) %>% 
+  summarise(sentiment = sum(score))
+```
+
+```{r}
+afinn_data <- data %>% 
+  inner_join(get_sentiments("afinn"), by = c("words" = "word")) %>% 
+  group_by(title, index = as.numeric(rowname) %/%1000) %>% 
+  summarise(sentiment = sum(score))
+
+afinn_data_2 <- data %>% 
+  inner_join(get_sentiments("bing"), by = c("words" = "word")) %>%
+  count(title, index = as.numeric(rowname) %/% 1500, sentiment) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+```
+
+
+```{r}
+ggplot(afinn_anna, aes(index, sentiment)) +
   geom_col(show.legend = FALSE)
+
+ggplot(afinn_resurrection, aes(index, sentiment)) +
+  geom_col(show.legend = FALSE)
+
+ggplot(afinn_data_2, aes(index, sentiment, fill = title)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~title, ncol = 3, scales = "free_x")
 ```
 
 
