@@ -8,20 +8,22 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+##Loading libraries:
 ```{r}
 library(readr)
 library(tidytext)
 library(tidyverse)
 ```
 
+##Reading in data:
 ```{r}
-anna_karenina<- read_csv("anna_karenina.csv")
-boyhood <- read_csv("boyhood.csv")
-childhood <- read_csv("childhood.csv")
-cossacks <- read_csv("cossacks.csv")
-resurrection<- read_csv("resurrection.csv")
-war_and_peace<- read_csv("war_and_peace.csv")
-youth<- read_csv("youth.csv")
+anna_karenina<- read_csv("anna_karenina.csv", col_types = cols(title = col_factor(levels = NULL)))
+boyhood <- read_csv("boyhood.csv", col_types = cols(title = col_factor(levels = NULL)))
+childhood <- read_csv("childhood.csv", col_types = cols(title = col_factor(levels = NULL)))
+cossacks <- read_csv("cossacks.csv", col_types = cols(title = col_factor(levels = NULL)))
+resurrection<- read_csv("resurrection.csv", col_types = cols(title = col_factor(levels = NULL)))
+war_and_peace<- read_csv("war_and_peace.csv", col_types = cols(title = col_factor(levels = NULL)))
+youth<- read_csv("youth.csv", col_types = cols(title = col_factor(levels = NULL)))
 
 anna_karenina <- anna_karenina %>% 
   rownames_to_column()
@@ -45,24 +47,59 @@ youth <- youth %>%
   rownames_to_column()
 
 
-data <- bind_rows(boyhood, resurrection)
+data <- bind_rows(childhood, boyhood, anna_karenina, resurrection)
+  #bind_rows(anna_karenina, boyhood, childhood, cossacks, resurrection, war_and_peace, youth)
+#bind_rows(childhood, resurrection)
 ```
-
-
+##Lollipop plot with different numbers of indicies:
 ```{r}
-afinn_anna <- anna_karenina %>% 
-  inner_join(get_sentiments("afinn"), by = c("words" = "word")) %>% 
-  group_by(index = as.numeric(rowname) %/%1000) %>% 
-  summarise(sentiment = sum(score))
+data_final<- data %>% 
+  group_by(title) %>% 
+  inner_join(get_sentiments("bing"), by = c("words" = "word")) %>% 
+  count(title, index = as.numeric(rowname)%/%1500, sentiment) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive/(positive +negative))
+data_final
+
+ggplot(data_final, aes(index, sentiment, color = title)) +
+  geom_point(size = .5, show.legend = FALSE) +
+  geom_hline(aes(yintercept=.5))+
+  geom_segment(aes(x=index, xend = index, y = sentiment, yend = .5)) +
+  facet_wrap(~title, ncol = 3, scales = "free_x")
 ```
 
+##Lollipop plot with same number of indicies:
 ```{r}
-afinn_resurrection <- resurrection %>% 
-  inner_join(get_sentiments("afinn"), by = c("words" = "word")) %>% 
-  group_by(index = as.numeric(rowname) %/%100) %>% 
-  summarise(sentiment = sum(score))
+data %>% 
+  group_by(title) %>% 
+  count(title, index = max(as.numeric(rowname)))
+
+data_final<- data %>% 
+  group_by(title) %>% 
+  inner_join(get_sentiments("bing"), by = c("words" = "word")) %>% 
+  count(title, index = as.numeric(rowname)%/%as.numeric(max(as.numeric(rowname)/50)), sentiment) %>%
+  filter(as.numeric(index)!=50) %>% 
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive/(positive +negative))
+data_final
+```
+```{r}
+labels <- c(anna_karenina = "Anna Karenina, 1877", boyhood = "Boyhood, 1854", childhood = "Childhood, 1852", resurrection = "Resurrection, 1899")
+
+ggplot(data_final, aes(index, sentiment, color = fct_relevel(title, "boyhood", "childhood", "anna_karenina", "resurrection"))) +
+  geom_point(size = .5, show.legend = FALSE) +
+  geom_hline(aes(yintercept=.5))+
+  geom_segment(aes(x=index, xend = index, y = sentiment, yend = .5)) +
+  scale_color_discrete(name = "Book", labels = labels) +
+  facet_wrap(~fct_relevel(title, "boyhood", "childhood", "anna_karenina", "resurrection"), ncol = 2, scales = "free_x", labeller=labeller(labels)) +
+  ggtitle("Positive and Negative Sentiment across Tolstoy Novels") +
+  theme(axis.title.x=element_blank()) +
+  theme(axis.ticks.x=element_blank()) +
+  theme(axis.text.x=element_blank())
+  
 ```
 
+##Original bar charts:
 ```{r}
 afinn_data <- data %>% 
   inner_join(get_sentiments("afinn"), by = c("words" = "word")) %>% 
@@ -73,7 +110,7 @@ get_sentiments("afinn")
 
 afinn_data_2 <- data %>% 
   inner_join(get_sentiments("bing"), by = c("words" = "word")) %>%
-  count(title, index = as.numeric(rowname) %/% 1500, sentiment) %>%
+  count(title, index = as.numeric(rowname) %/% 1000, sentiment) %>%
   spread(sentiment, n, fill = 0) %>%
   mutate(sentiment = positive - negative)
 
@@ -82,34 +119,23 @@ afinn_data_3 <- data %>%
   count(title, index = as.numeric(rowname)%/%as.numeric(max(as.numeric(rowname)/50)), sentiment) %>%
   spread(sentiment, n, fill = 0) %>%
   mutate(sentiment = positive - negative)
-
-data %>%  
-  group_by(title) %>% 
-  #mutate(index = max(as.numeric(rowname))/50)
-  mutate(index = as.numeric(rowname)%/%as.numeric(max(as.numeric(rowname))/50))
-  
 ```
 
-
 ```{r}
-ggplot(afinn_anna, aes(index, sentiment)) +
-  geom_col(show.legend = FALSE)
-
-ggplot(afinn_resurrection, aes(index, sentiment)) +
-  geom_col(show.legend = FALSE)
-
-
 ggplot(afinn_data, aes(index, sentiment, fill = title)) +
   geom_col(show.legend = FALSE) +
   facet_wrap(~title, ncol = 3, scales = "free_x")
 
 
 ggplot(afinn_data_2, aes(index, sentiment, fill = title)) +
-  geom_col(show.legend = FALSE) +
-  facet_wrap(~title, ncol = 3, scales = "free_x")
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  facet_wrap(~title, ncol = 3, scales = "free_x")+
+  theme(axis.title.x=element_blank()) +
+  theme(axis.ticks.x=element_blank()) +
+  theme(axis.text.x=element_blank())
 
 ggplot(afinn_data_3, aes(index, sentiment, fill = title)) +
-  geom_col(show.legend = FALSE) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
   facet_wrap(~title, ncol = 3, scales = "free_x")
 ```
 
