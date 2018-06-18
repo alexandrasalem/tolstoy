@@ -83,10 +83,11 @@ data_final<- data %>%
   mutate(sentiment = positive/(positive +negative))
 data_final
 ```
+
 ```{r}
 labels <- c(childhood = "Childhood, 1852", anna_karenina = "Anna Karenina, 1877", resurrection = "Resurrection, 1899")
 
-fct_relevel(data_final$title, "childhood", "anna_karenina", "resurrection")
+data_final$title<- fct_relevel(data_final$title, "childhood", "anna_karenina", "resurrection")
 
 ggplot(data_final, aes(index, sentiment, color =  title)) +
   geom_point(size = .5, show.legend = FALSE) +
