@@ -176,23 +176,65 @@ plot
 ``` 
 
 ##Edited Version
+###Steven's q:
+Investigating Steven's q on what percentage of words have a sentiment, if there are any that are the most common:
+
+```{r}
+steve_q <- data %>% 
+  group_by(title) %>% 
+  inner_join(get_sentiments("bing"), by = c("words" = "word"))
+
+steve_q
+
+steve_q %>% 
+  filter(title == "childhood") %>% 
+  count(words, sort = TRUE) 
+
+steve_q %>% 
+  filter(title == "anna_karenina") %>% 
+  count(words, sort = TRUE) 
+
+steve_q %>% 
+  filter(title == "resurrection") %>% 
+  count(words, sort = TRUE) 
+```
+"Well" is the most common world--in the future, could take that word out and look at the results.
+
+Total of 34315 words with a sentiment value in the data, which is 6% of the words.
+
+###How can we improve this?
+Ideas:
+- Legend at the bottom is repetitive
+- Add annotations-- what's happening in these various sections?
+
+Implementation:
+- Add in `theme(legend.position = "none")`
+- Add a `text` variable and `geom_text()` layer
+
+###What happens in different sections?
 Word number 332681
 total 353452
 332681/353452 = x/40
 .941
 37/40
-so 37th section is when Anna killed herself!
+so 37th section is when Anna killed herself.
 
 what's in 25/40 -> .625
 220907 to 229744
+Karenin upset, Anna missing son.
 
+Beginning, new love, Vronsky and Levin meeting again, etc.
+
+Adding that info to data frame:
 ```{r}
 data_final_2 <- data_final %>% 
   mutate(text = "")
 
 data_final_2$text = c(" ", " ", "New \nlove", rep(" ", 21),"Karenin \nupset, \nAnna missing \nson", rep(" ", 11), "Anna \nDies", rep(" ", 83))
+```
 
-
+Making a new plot, remove legend and add `geom_text()` layer:
+```{r}
 plot_2 <- ggplot(data_final_2, aes(index, sentiment, color =  title, label = text)) +
   geom_point(size = .8, show.legend = FALSE) +
   geom_hline(aes(yintercept=.5))+
