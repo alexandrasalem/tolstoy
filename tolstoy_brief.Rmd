@@ -190,7 +190,8 @@ what's in 25/40 -> .625
 data_final_2 <- data_final %>% 
   mutate(text = "")
 
-data_final_2$text = c(rep(" ", 36), "Anna \nKarenina \nDies", rep(" ", 83))
+data_final_2$text = c(" ", " ", "New \nlove", rep(" ", 21),"Karenin \nupset, \nAnna missing \nson", rep(" ", 11), "Anna \nDies", rep(" ", 83))
+
 
 plot_2 <- ggplot(data_final_2, aes(index, sentiment, color =  title, label = text)) +
   geom_point(size = .8, show.legend = FALSE) +
@@ -206,7 +207,9 @@ plot_2 <- ggplot(data_final_2, aes(index, sentiment, color =  title, label = tex
   theme(axis.ticks.x=element_blank()) +
   theme(axis.text.x=element_blank()) +
   theme(legend.position = "none") +
-  geom_text(size = 2.5, nudge_y = -.15)
+  geom_text(size = 2.5, aes(y = case_when(sentiment>.5 ~ sentiment + .1,
+                                          sentiment <= .5 ~ sentiment -.13)))
+  #geom_text(size = 2.5, aes(y = sentiment - abs(sentiment-.45), vjust = .95))
 
 plot_2
 ```
