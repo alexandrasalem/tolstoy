@@ -132,6 +132,8 @@ data_final<- data %>%
   mutate(sentiment = positive/(positive+negative))
 
 data_final$title<- fct_relevel(data_final$title, "childhood")
+
+
 ```
 - Join sentiment values (either "positive" or "negative") to words in `data`
 - Divide data into 40 sections, count number of positive and negative words in each section
@@ -173,6 +175,41 @@ plot <- ggplot(data_final, aes(index, sentiment, color =  title)) +
 plot
 ``` 
 
+##Edited Version
+Word number 332681
+total 353452
+332681/353452 = x/40
+.941
+37/40
+so 37th section is when Anna killed herself!
+
+what's in 25/40 -> .625
+220907 to 229744
+
+```{r}
+data_final_2 <- data_final %>% 
+  mutate(text = "")
+
+data_final_2$text = c(rep(" ", 36), "Anna \nKarenina \nDies", rep(" ", 83))
+
+plot_2 <- ggplot(data_final_2, aes(index, sentiment, color =  title, label = text)) +
+  geom_point(size = .8, show.legend = FALSE) +
+  geom_hline(aes(yintercept=.5))+
+  geom_segment(aes(x=index, xend = index, y = sentiment, yend = .5)) +
+  facet_wrap(~title, ncol = 3, labeller = labeller(title = labels)) +
+  ggtitle("Positive and Negative Sentiment in Tolstoy Novels across Plot Trajectory", subtitle = "Sentiment Ratio = Positive Words / (Positive Words + Negative Words) \nSentiment Ratio > 0.5 indicates more positive than negative words \nSentiment Ratio < 0.5 indicates more negative than positive words      ") +
+  labs(x = "Plot Trajectory", y = "Sentiment Ratio")+
+  expand_limits(y=c(0,1)) +
+  scale_color_viridis(discrete = TRUE, name = "Book", labels = labels) +
+  theme_minimal() +
+  theme(strip.text = element_text(face = "italic")) +
+  theme(axis.ticks.x=element_blank()) +
+  theme(axis.text.x=element_blank()) +
+  theme(legend.position = "none") +
+  geom_text(size = 2.5, nudge_y = -.15)
+
+plot_2
+```
 
 ##Audience Description
 I am aiming for a general audience--but hopefully readers of Tolstoy. :)
