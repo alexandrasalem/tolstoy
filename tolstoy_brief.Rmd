@@ -209,7 +209,6 @@ plot_2 <- ggplot(data_final_2, aes(index, sentiment, color =  title, label = tex
   theme(legend.position = "none") +
   geom_text(size = 2.5, aes(y = case_when(sentiment>.5 ~ sentiment + .1,
                                           sentiment <= .5 ~ sentiment -.13)))
-  #geom_text(size = 2.5, aes(y = sentiment - abs(sentiment-.45), vjust = .95))
 
 plot_2
 ```
